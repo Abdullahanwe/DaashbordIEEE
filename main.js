@@ -20,19 +20,33 @@ async function fetchData() {
         errorMessage.style.display = 'none';
         
         const response = await fetch(`${API_BASE_URL}/api/applications`);
-        console.log(response);
+        console.log('Raw Response:', response);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
+        console.log('API Data:', data); // شوفي هيعرض إيه
         
+        // معالجة البيانات بناءً على التنسيق الفعلي
         if (Array.isArray(data)) {
+            // إذا كانت البيانات مصفوفة مباشرة
             applications = data;
             filteredData = [...applications];
             renderTable();
+        } else if (data.applications && Array.isArray(data.applications)) {
+            // إذا كانت البيانات في شكل {applications: [...]}
+            applications = data.applications;
+            filteredData = [...applications];
+            renderTable();
+        } else if (data.data && Array.isArray(data.data)) {
+            // إذا كانت البيانات في شكل {data: [...]}
+            applications = data.data;
+            filteredData = [...applications];
+            renderTable();
         } else {
+            console.log('Unknown data format:', data);
             throw new Error('Invalid data format received from API');
         }
         
@@ -45,6 +59,9 @@ async function fetchData() {
             <div class="no-data">
                 <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px;"></i>
                 <p>Failed to load data. Please try again later.</p>
+                <button onclick="fetchData()" style="margin-top: 10px; padding: 8px 16px; background: #00629B; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Try Again
+                </button>
             </div>
         `;
     }
@@ -70,25 +87,33 @@ function renderTable() {
         const row = document.createElement('div');
         row.className = 'table-row';
         
-        // تنسيق التاريخ
-        const createdAt = new Date(app.created_at).toLocaleDateString('en-US', {
+        // تنسيق التاريخ - استخدمي الحقل الصحيح بناءً على البيانات الفعلية
+        const dateField = app.created_at || app.submittedAt || app.date;
+        const createdAt = dateField ? new Date(dateField).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric'
-        });
+        }) : 'N/A';
         
         // استخراج اسم الملف من المسار
         const fileName = app.file ? app.file.split('/').pop() : 'No file';
         
+        // استخدمي الأسماء الصحيحة للحقول بناءً على البيانات الفعلية
+        const name = app.name || app.fullName || 'N/A';
+        const email = app.email || 'N/A';
+        const phone = app.phone || 'N/A';
+        const college = app.collage || app.faculty || 'N/A';
+        const fileUrl = app.file ? `https://omarmuhammed.pythonanywhere.com/api/uploads/${app.file}` : null;
+        
         row.innerHTML = `
-            <div>${app.id}</div>
-            <div>${app.name}</div>
-            <div>${app.email}</div>
-            <div>${app.phone}</div>
-            <div>${app.collage}</div>
+            <div>${app.id || 'N/A'}</div>
+            <div>${name}</div>
+            <div>${email}</div>
+            <div>${phone}</div>
+            <div>${college}</div>
             <div>
-                ${app.file ? 
-                    `<a href="https://ieee.wuaze.com/${app.file}" target="_blank" class="file-link" title="Download CV">
+                ${fileUrl ? 
+                    `<a href="${fileUrl}" target="_blank" class="file-link" title="Download CV">
                         <i class="fas fa-file-pdf"></i> ${fileName}
                     </a>` : 
                     'No file'
@@ -138,14 +163,21 @@ function renderPagination(totalItems) {
 function viewApplication(id) {
     const app = applications.find(a => a.id === id);
     if (app) {
-        alert(`Application Details:\n\nID: ${app.id}\nName: ${app.name}\nEmail: ${app.email}\nPhone: ${app.phone}\nCollege: ${app.collage}\nCreated: ${new Date(app.created_at).toLocaleString()}`);
+        const name = app.name || app.fullName || 'N/A';
+        const email = app.email || 'N/A';
+        const phone = app.phone || 'N/A';
+        const college = app.collage || app.faculty || 'N/A';
+        const dateField = app.created_at || app.submittedAt || app.date;
+        const createdAt = dateField ? new Date(dateField).toLocaleString() : 'N/A';
+        
+        alert(`Application Details:\n\nID: ${app.id}\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nCollege: ${college}\nCreated: ${createdAt}`);
     }
 }
 
 // دالة لتحميل السيرة الذاتية
 function downloadCV(filePath) {
     if (filePath) {
-        const fullUrl = `https://ieee.wuaze.com/${filePath}`;
+        const fullUrl = `https://omarmuhammed.pythonanywhere.com/api/uploads/${filePath}`;
         window.open(fullUrl, '_blank');
     }
 }
@@ -196,7 +228,6 @@ async function deleteApplication(id) {
 
 // دالة لعرض الرسائل
 function showMessage(message, type) {
-    // إنشاء عنصر الرسالة إذا لم يكن موجوداً
     let messageDiv = document.getElementById('actionMessage');
     if (!messageDiv) {
         messageDiv = document.createElement('div');
@@ -216,7 +247,6 @@ function showMessage(message, type) {
         document.body.appendChild(messageDiv);
     }
 
-    // تعيين النص واللون حسب نوع الرسالة
     messageDiv.textContent = message;
     if (type === 'success') {
         messageDiv.style.backgroundColor = '#28a745';
@@ -224,10 +254,8 @@ function showMessage(message, type) {
         messageDiv.style.backgroundColor = '#dc3545';
     }
 
-    // إظهار الرسالة
     messageDiv.style.display = 'block';
 
-    // إخفاء الرسالة بعد 3 ثواني
     setTimeout(() => {
         messageDiv.style.display = 'none';
     }, 3000);
@@ -236,12 +264,17 @@ function showMessage(message, type) {
 // البحث في البيانات
 document.getElementById('searchInput').addEventListener('input', function(e) {
     const searchTerm = e.target.value.toLowerCase();
-    filteredData = applications.filter(app => 
-        app.name.toLowerCase().includes(searchTerm) ||
-        app.email.toLowerCase().includes(searchTerm) ||
-        app.phone.toLowerCase().includes(searchTerm) ||
-        app.collage.toLowerCase().includes(searchTerm)
-    );
+    filteredData = applications.filter(app => {
+        const name = (app.name || app.fullName || '').toLowerCase();
+        const email = (app.email || '').toLowerCase();
+        const phone = (app.phone || '').toLowerCase();
+        const college = (app.collage || app.faculty || '').toLowerCase();
+        
+        return name.includes(searchTerm) ||
+               email.includes(searchTerm) ||
+               phone.includes(searchTerm) ||
+               college.includes(searchTerm);
+    });
     currentPage = 1;
     renderTable();
 });
@@ -267,15 +300,24 @@ function exportToCSV() {
     const headers = ['ID', 'Name', 'Email', 'Phone', 'College', 'CV File', 'Created At'];
     const csvContent = [
         headers.join(','),
-        ...dataToExport.map(app => [
-            app.id,
-            `"${app.name}"`,
-            `"${app.email}"`,
-            `"${app.phone}"`,
-            `"${app.collage}"`,
-            `"${app.file}"`,
-            `"${new Date(app.created_at).toLocaleDateString()}"`
-        ].join(','))
+        ...dataToExport.map(app => {
+            const name = app.name || app.fullName || '';
+            const email = app.email || '';
+            const phone = app.phone || '';
+            const college = app.collage || app.faculty || '';
+            const dateField = app.created_at || app.submittedAt || app.date;
+            const createdAt = dateField ? new Date(dateField).toLocaleDateString() : '';
+            
+            return [
+                app.id,
+                `"${name}"`,
+                `"${email}"`,
+                `"${phone}"`,
+                `"${college}"`,
+                `"${app.file}"`,
+                `"${createdAt}"`
+            ].join(',');
+        })
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
