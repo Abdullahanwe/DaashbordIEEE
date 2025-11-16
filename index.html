@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عرض البيانات - IEEE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="image/wiht.png" alt="logo" class="ieee-logo ieee-logo-left">
+            <h1>IEEE Applications Data</h1>
+            <p>View and manage submitted applications</p>
+            <img src="image/ieee-logo-white.png" alt="logo" class="ieee-logo ieee-logo-right">
+        </div>
+
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search applications...">
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="refreshBtn">
+                    <i class="fas fa-sync-alt"></i> Refresh Data
+                </button>
+                <button class="btn btn-secondary" id="exportBtn">
+                    <i class="fas fa-download"></i> Export CSV
+                </button>
+            </div>
+        </div>
+
+        <div class="data-table">
+            <div class="table-header">
+                <div>ID</div>
+                <div>Name</div>
+                <div>Email</div>
+                <div>Phone</div>
+                <div>College</div>
+                <div>CV File</div>
+                <div>Created At</div>
+                <div>Actions</div>
+            </div>
+
+            <div class="table-body" id="tableBody">
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Loading data from API...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="pagination" id="pagination">
+            <!-- أزرار الترقيم سيتم إضافتها هنا بواسطة JavaScript -->
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+
+</html>
