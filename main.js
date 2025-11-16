@@ -8,7 +8,7 @@ const API_BASE_URL = 'https://omarmuhammed.pythonanywhere.com';
 async function fetchData() {
     const tableBody = document.getElementById('tableBody');
     const errorMessage = document.getElementById('errorMessage');
-    
+
     try {
         tableBody.innerHTML = `
             <div class="loading">
@@ -16,19 +16,19 @@ async function fetchData() {
                 <p>Loading data from API...</p>
             </div>
         `;
-        
+
         errorMessage.style.display = 'none';
-        
+
         const response = await fetch(`${API_BASE_URL}/api/applications`);
         console.log('Raw Response:', response);
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         console.log('API Data:', data);
-        
+
         // معالجة البيانات بناءً على التنسيق الجديد
         if (Array.isArray(data)) {
             applications = data;
@@ -46,12 +46,12 @@ async function fetchData() {
             console.log('Unknown data format:', data);
             throw new Error('Invalid data format received from API');
         }
-        
+
     } catch (error) {
         console.error('Error fetching data:', error);
         errorMessage.textContent = `Error loading data: ${error.message}`;
         errorMessage.style.display = 'block';
-        
+
         tableBody.innerHTML = `
             <div class="no-data">
                 <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px;"></i>
@@ -67,7 +67,7 @@ async function fetchData() {
 // دالة لعرض البيانات في الجدول
 function renderTable() {
     const tableBody = document.getElementById('tableBody');
-    
+
     if (filteredData.length === 0) {
         tableBody.innerHTML = '<div class="table-row no-data"><div>No applications found</div></div>';
         renderPagination(0);
@@ -84,25 +84,25 @@ function renderTable() {
     pageData.forEach((app, index) => {
         const row = document.createElement('div');
         row.className = 'table-row';
-        
+
         const dateField = app.created_at || app.submittedAt || app.date;
         const createdAt = dateField ? new Date(dateField).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric'
         }) : 'N/A';
-        
+
         const fileName = app.cvFile ? app.cvFile.split('/').pop() : 'No file';
-        
+
         const name = app.fullName || app.name || 'N/A';
         const email = app.email || 'N/A';
         const phone = app.phone || 'N/A';
         const college = app.faculty || app.collage || 'N/A';
         const fileUrl = app.cvFileUrl || (app.cvFile ? `${API_BASE_URL}/api/uploads/${app.cvFile}` : null);
-        
+
         // حساب الرقم التسلسلي بناءً على الصفحة الحالية
         const serialNumber = (currentPage - 1) * itemsPerPage + index + 1;
-        
+
         row.innerHTML = `
             <div>${serialNumber}</div>
             <div>${name}</div>
@@ -111,7 +111,7 @@ function renderTable() {
             <div>${college}</div>
             <button class="action-btn download-btn" onclick="downloadCV('${app.cvFile || app.file}')" title="Download CV" ${!fileUrl ? 'disabled' : ''}>
                     <i class="fas fa-download"></i>
-                </button>>
+            </button>
             <div>${createdAt}</div>
             <div class="actions">
                 <button class="action-btn delete-btn" onclick="deleteApplication('${app.id}')" title="Delete">
@@ -157,7 +157,7 @@ function viewApplication(id) {
         const dateField = app.created_at || app.submittedAt || app.date;
         const createdAt = dateField ? new Date(dateField).toLocaleString() : 'N/A';
         const status = app.status || 'N/A';
-        
+
         alert(`Application Details:\n\nID: ${app.id}\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nCollege: ${college}\nStatus: ${status}\nCreated: ${createdAt}`);
     }
 }
@@ -217,7 +217,7 @@ async function deleteApplication(id) {
     } catch (error) {
         console.error('Error deleting application:', error);
         showMessage(`Error deleting application: ${error.message}`, 'error');
-        
+
         const deleteBtn = event.target.closest('.delete-btn');
         deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
         deleteBtn.disabled = false;
@@ -260,36 +260,36 @@ function showMessage(message, type) {
 }
 
 // البحث في البيانات
-document.getElementById('searchInput').addEventListener('input', function(e) {
+document.getElementById('searchInput').addEventListener('input', function (e) {
     const searchTerm = e.target.value.toLowerCase();
     filteredData = applications.filter(app => {
         const name = (app.fullName || app.name || '').toLowerCase();
         const email = (app.email || '').toLowerCase();
         const phone = (app.phone || '').toLowerCase();
         const college = (app.faculty || app.collage || '').toLowerCase();
-        
+
         return name.includes(searchTerm) ||
-               email.includes(searchTerm) ||
-               phone.includes(searchTerm) ||
-               college.includes(searchTerm);
+            email.includes(searchTerm) ||
+            phone.includes(searchTerm) ||
+            college.includes(searchTerm);
     });
     currentPage = 1;
     renderTable();
 });
 
 // زر تحديث البيانات
-document.getElementById('refreshBtn').addEventListener('click', function() {
+document.getElementById('refreshBtn').addEventListener('click', function () {
     fetchData();
 });
 
 // زر تصدير البيانات
-document.getElementById('exportBtn').addEventListener('click', function() {
+document.getElementById('exportBtn').addEventListener('click', function () {
     exportToCSV();
 });
 
 function exportToCSV() {
     const dataToExport = filteredData.length > 0 ? filteredData : applications;
-    
+
     if (dataToExport.length === 0) {
         alert('No data to export');
         return;
@@ -306,9 +306,9 @@ function exportToCSV() {
             const dateField = app.created_at || app.submittedAt || app.date;
             const createdAt = dateField ? new Date(dateField).toLocaleDateString() : '';
             const status = app.status || '';
-            
+
             return [
-                index + 1, 
+                index + 1,
                 `"${name}"`,
                 `"${email}"`,
                 `"${phone}"`,
