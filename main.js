@@ -221,7 +221,7 @@ function renderTable() {
                     <i class="fas fa-download"></i>
                 </button>
             <div class="actions">
-                <button class="action-btn delete-btn" onclick="deleteApplication('${app.id}')" title="Delete">
+                <button class="action-btn delete-btn" onclick="deleteApplication('${app.id}', event)" title="Delete">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
