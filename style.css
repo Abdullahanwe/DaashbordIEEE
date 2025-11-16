@@ -191,6 +191,8 @@
         .table-body {
             max-height: 500px;
             overflow-y: auto;
+            text-align: center;
+
         }
 
         .table-row {
