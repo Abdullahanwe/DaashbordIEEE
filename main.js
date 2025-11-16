@@ -31,17 +31,14 @@ async function fetchData() {
         
         // معالجة البيانات بناءً على التنسيق الجديد
         if (Array.isArray(data)) {
-            // إذا كانت البيانات مصفوفة مباشرة
             applications = data;
             filteredData = [...applications];
             renderTable();
         } else if (data.applications && Array.isArray(data.applications)) {
-            // إذا كانت البيانات في شكل {applications: [...]}
             applications = data.applications;
             filteredData = [...applications];
             renderTable();
         } else if (data.data && Array.isArray(data.data)) {
-            // إذا كانت البيانات في شكل {data: [...]}
             applications = data.data;
             filteredData = [...applications];
             renderTable();
@@ -83,11 +80,11 @@ function renderTable() {
 
     tableBody.innerHTML = '';
 
-    pageData.forEach(app => {
+    // استخدام index للترتيب بدلاً من الـ ID الحقيقي
+    pageData.forEach((app, index) => {
         const row = document.createElement('div');
         row.className = 'table-row';
         
-        // تنسيق التاريخ - استخدام الحقول الصحيحة بناءً على البيانات
         const dateField = app.created_at || app.submittedAt || app.date;
         const createdAt = dateField ? new Date(dateField).toLocaleDateString('en-US', {
             year: 'numeric',
@@ -95,27 +92,28 @@ function renderTable() {
             day: 'numeric'
         }) : 'N/A';
         
-        // استخراج اسم الملف من المسار
         const fileName = app.cvFile ? app.cvFile.split('/').pop() : 'No file';
         
-        // استخدام الأسماء الصحيحة للحقول بناءً على البيانات الفعلية
         const name = app.fullName || app.name || 'N/A';
         const email = app.email || 'N/A';
         const phone = app.phone || 'N/A';
         const college = app.faculty || app.collage || 'N/A';
         const fileUrl = app.cvFileUrl || (app.cvFile ? `${API_BASE_URL}/api/uploads/${app.cvFile}` : null);
         
+        // حساب الرقم التسلسلي بناءً على الصفحة الحالية
+        const serialNumber = (currentPage - 1) * itemsPerPage + index + 1;
+        
         row.innerHTML = `
-            <div>${app.id || 'N/A'}</div>
+            <div>${serialNumber}</div>
             <div>${name}</div>
             <div>${email}</div>
             <div>${phone}</div>
             <div>${college}</div>
             <div>
                 ${fileUrl ? 
-                    `<a href="${fileUrl}" target="_blank" class="file-link" title="Open CV in new tab" onclick="event.stopPropagation()">
-                        <i class="fas fa-external-link-alt"></i> ${fileName}
-                    </a>` : 
+                    `<button class="file-link-btn" onclick="openCV('${fileUrl}')" title="View CV">
+                        <i class="fas fa-file-pdf"></i> ${fileName}
+                    </button>` : 
                     'No file'
                 }
             </div>
@@ -175,12 +173,27 @@ function viewApplication(id) {
     }
 }
 
-// دالة لتحميل السيرة الذاتية في تاب جديد
+// دالة لفتح الـ CV مباشرة في المتصفح
+function openCV(fileUrl) {
+    if (fileUrl) {
+        // فتح الـ CV في تاب جديد لعرضه مباشرة
+        window.open(fileUrl, '_blank', 'noopener,noreferrer');
+    } else {
+        alert('No CV file available');
+    }
+}
+
+// دالة لتحميل السيرة الذاتية (إذا أردت الاحتفاظ بخيار التنزيل)
 function downloadCV(filePath) {
     if (filePath) {
         const fullUrl = `${API_BASE_URL}/api/uploads/${filePath}`;
-        // فتح الرابط في تاب جديد
-        window.open(fullUrl, '_blank', 'noopener,noreferrer');
+        // إنشاء رابط تنزيل
+        const a = document.createElement('a');
+        a.href = fullUrl;
+        a.download = filePath.split('/').pop() || 'cv.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     } else {
         alert('No CV file available');
     }
@@ -193,26 +206,19 @@ async function deleteApplication(id) {
     }
 
     try {
-        // إظهار مؤشر التحميل
         const deleteBtn = event.target.closest('.delete-btn');
         const originalHTML = deleteBtn.innerHTML;
         deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         deleteBtn.disabled = true;
 
-        // إرسال طلب الحذف إلى الـ API
         const response = await fetch(`${API_BASE_URL}/api/applications/${id}`, {
             method: 'DELETE'
         });
 
         if (response.ok) {
-            // إزالة التطبيق من المصفوفات المحلية
             applications = applications.filter(app => app.id !== id);
             filteredData = filteredData.filter(app => app.id !== id);
-            
-            // إعادة عرض الجدول
             renderTable();
-            
-            // عرض رسالة نجاح
             showMessage('Application deleted successfully!', 'success');
         } else {
             const errorData = await response.json();
@@ -223,7 +229,6 @@ async function deleteApplication(id) {
         console.error('Error deleting application:', error);
         showMessage(`Error deleting application: ${error.message}`, 'error');
         
-        // إعادة تعيين زر الحذف
         const deleteBtn = event.target.closest('.delete-btn');
         deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
         deleteBtn.disabled = false;
@@ -301,10 +306,10 @@ function exportToCSV() {
         return;
     }
 
-    const headers = ['ID', 'Name', 'Email', 'Phone', 'College', 'CV File', 'Created At', 'Status'];
+    const headers = ['Serial No.', 'ID', 'Name', 'Email', 'Phone', 'College', 'CV File', 'Created At', 'Status'];
     const csvContent = [
         headers.join(','),
-        ...dataToExport.map(app => {
+        ...dataToExport.map((app, index) => {
             const name = app.fullName || app.name || '';
             const email = app.email || '';
             const phone = app.phone || '';
@@ -314,7 +319,7 @@ function exportToCSV() {
             const status = app.status || '';
             
             return [
-                app.id,
+                index + 1, 
                 `"${name}"`,
                 `"${email}"`,
                 `"${phone}"`,
