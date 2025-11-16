@@ -216,19 +216,11 @@ function renderTable() {
             <div>${email}</div>
             <div>${phone}</div>
             <div>${college}</div>
-            <div>
-                ${fileUrl ? 
-                    `<button class="file-link-btn" onclick="openCV('${fileUrl}')" title="View CV">
-                        <i class="fas fa-file-pdf"></i> ${fileName}
-                    </button>` : 
-                    'No file'
-                }
-            </div>
             <div>${createdAt}</div>
-            <div class="actions">
                 <button class="action-btn download-btn" onclick="downloadCV('${app.cvFile || app.file}')" title="Download CV" ${!fileUrl ? 'disabled' : ''}>
                     <i class="fas fa-download"></i>
                 </button>
+            <div class="actions">
                 <button class="action-btn delete-btn" onclick="deleteApplication('${app.id}')" title="Delete">
                     <i class="fas fa-trash"></i>
                 </button>
