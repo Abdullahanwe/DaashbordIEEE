@@ -27,9 +27,9 @@ async function fetchData() {
         }
         
         const data = await response.json();
-        console.log('API Data:', data); // شوفي هيعرض إيه
+        console.log('API Data:', data);
         
-        // معالجة البيانات بناءً على التنسيق الفعلي
+        // معالجة البيانات بناءً على التنسيق الجديد
         if (Array.isArray(data)) {
             // إذا كانت البيانات مصفوفة مباشرة
             applications = data;
@@ -87,7 +87,7 @@ function renderTable() {
         const row = document.createElement('div');
         row.className = 'table-row';
         
-        // تنسيق التاريخ - استخدمي الحقل الصحيح بناءً على البيانات الفعلية
+        // تنسيق التاريخ - استخدام الحقول الصحيحة بناءً على البيانات
         const dateField = app.created_at || app.submittedAt || app.date;
         const createdAt = dateField ? new Date(dateField).toLocaleDateString('en-US', {
             year: 'numeric',
@@ -96,14 +96,14 @@ function renderTable() {
         }) : 'N/A';
         
         // استخراج اسم الملف من المسار
-        const fileName = app.file ? app.file.split('/').pop() : 'No file';
+        const fileName = app.cvFile ? app.cvFile.split('/').pop() : 'No file';
         
-        // استخدمي الأسماء الصحيحة للحقول بناءً على البيانات الفعلية
-        const name = app.name || app.fullName || 'N/A';
+        // استخدام الأسماء الصحيحة للحقول بناءً على البيانات الفعلية
+        const name = app.fullName || app.name || 'N/A';
         const email = app.email || 'N/A';
         const phone = app.phone || 'N/A';
-        const college = app.collage || app.faculty || 'N/A';
-        const fileUrl = app.file ? `https://omarmuhammed.pythonanywhere.com/api/uploads/${app.file}` : null;
+        const college = app.faculty || app.collage || 'N/A';
+        const fileUrl = app.cvFileUrl || (app.cvFile ? `${API_BASE_URL}/api/uploads/${app.cvFile}` : null);
         
         row.innerHTML = `
             <div>${app.id || 'N/A'}</div>
@@ -113,21 +113,21 @@ function renderTable() {
             <div>${college}</div>
             <div>
                 ${fileUrl ? 
-                    `<a href="${fileUrl}" target="_blank" class="file-link" title="Download CV">
-                        <i class="fas fa-file-pdf"></i> ${fileName}
+                    `<a href="${fileUrl}" target="_blank" class="file-link" title="Open CV in new tab" onclick="event.stopPropagation()">
+                        <i class="fas fa-external-link-alt"></i> ${fileName}
                     </a>` : 
                     'No file'
                 }
             </div>
             <div>${createdAt}</div>
             <div class="actions">
-                <button class="action-btn view-btn" onclick="viewApplication(${app.id})" title="View Details">
+                <button class="action-btn view-btn" onclick="viewApplication('${app.id}')" title="View Details">
                     <i class="fas fa-eye"></i>
                 </button>
-                <button class="action-btn download-btn" onclick="downloadCV('${app.file}')" title="Download CV" ${!app.file ? 'disabled' : ''}>
+                <button class="action-btn download-btn" onclick="downloadCV('${app.cvFile || app.file}')" title="Download CV" ${!fileUrl ? 'disabled' : ''}>
                     <i class="fas fa-download"></i>
                 </button>
-                <button class="action-btn delete-btn" onclick="deleteApplication(${app.id})" title="Delete">
+                <button class="action-btn delete-btn" onclick="deleteApplication('${app.id}')" title="Delete">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -163,22 +163,26 @@ function renderPagination(totalItems) {
 function viewApplication(id) {
     const app = applications.find(a => a.id === id);
     if (app) {
-        const name = app.name || app.fullName || 'N/A';
+        const name = app.fullName || app.name || 'N/A';
         const email = app.email || 'N/A';
         const phone = app.phone || 'N/A';
-        const college = app.collage || app.faculty || 'N/A';
+        const college = app.faculty || app.collage || 'N/A';
         const dateField = app.created_at || app.submittedAt || app.date;
         const createdAt = dateField ? new Date(dateField).toLocaleString() : 'N/A';
+        const status = app.status || 'N/A';
         
-        alert(`Application Details:\n\nID: ${app.id}\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nCollege: ${college}\nCreated: ${createdAt}`);
+        alert(`Application Details:\n\nID: ${app.id}\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nCollege: ${college}\nStatus: ${status}\nCreated: ${createdAt}`);
     }
 }
 
-// دالة لتحميل السيرة الذاتية
+// دالة لتحميل السيرة الذاتية في تاب جديد
 function downloadCV(filePath) {
     if (filePath) {
-        const fullUrl = `https://omarmuhammed.pythonanywhere.com/api/uploads/${filePath}`;
-        window.open(fullUrl, '_blank');
+        const fullUrl = `${API_BASE_URL}/api/uploads/${filePath}`;
+        // فتح الرابط في تاب جديد
+        window.open(fullUrl, '_blank', 'noopener,noreferrer');
+    } else {
+        alert('No CV file available');
     }
 }
 
@@ -265,10 +269,10 @@ function showMessage(message, type) {
 document.getElementById('searchInput').addEventListener('input', function(e) {
     const searchTerm = e.target.value.toLowerCase();
     filteredData = applications.filter(app => {
-        const name = (app.name || app.fullName || '').toLowerCase();
+        const name = (app.fullName || app.name || '').toLowerCase();
         const email = (app.email || '').toLowerCase();
         const phone = (app.phone || '').toLowerCase();
-        const college = (app.collage || app.faculty || '').toLowerCase();
+        const college = (app.faculty || app.collage || '').toLowerCase();
         
         return name.includes(searchTerm) ||
                email.includes(searchTerm) ||
@@ -297,16 +301,17 @@ function exportToCSV() {
         return;
     }
 
-    const headers = ['ID', 'Name', 'Email', 'Phone', 'College', 'CV File', 'Created At'];
+    const headers = ['ID', 'Name', 'Email', 'Phone', 'College', 'CV File', 'Created At', 'Status'];
     const csvContent = [
         headers.join(','),
         ...dataToExport.map(app => {
-            const name = app.name || app.fullName || '';
+            const name = app.fullName || app.name || '';
             const email = app.email || '';
             const phone = app.phone || '';
-            const college = app.collage || app.faculty || '';
+            const college = app.faculty || app.collage || '';
             const dateField = app.created_at || app.submittedAt || app.date;
             const createdAt = dateField ? new Date(dateField).toLocaleDateString() : '';
+            const status = app.status || '';
             
             return [
                 app.id,
@@ -314,8 +319,9 @@ function exportToCSV() {
                 `"${email}"`,
                 `"${phone}"`,
                 `"${college}"`,
-                `"${app.file}"`,
-                `"${createdAt}"`
+                `"${app.cvFile || app.file}"`,
+                `"${createdAt}"`,
+                `"${status}"`
             ].join(',');
         })
     ].join('\n');
