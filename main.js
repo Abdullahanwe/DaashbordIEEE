@@ -4,6 +4,113 @@ const itemsPerPage = 10;
 let filteredData = [];
 const API_BASE_URL = 'https://omarmuhammed.pythonanywhere.com';
 
+// دالة لعرض نافذة التأكيد المخصصة
+function showConfirmModal(message, onConfirm, onCancel) {
+    // إنشاء الـ modal إذا لم يكن موجوداً
+    let modal = document.getElementById('confirmModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'confirmModal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        `;
+        
+        modal.innerHTML = `
+            <div style="
+                background: white;
+                padding: 30px;
+                border-radius: 12px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                max-width: 400px;
+                width: 90%;
+                text-align: center;
+                transform: scale(0.9);
+                transition: transform 0.3s;
+            ">
+                <div style="font-size: 3rem; color: #dc3545; margin-bottom: 15px;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 style="color: #333; margin-bottom: 15px; font-size: 1.3rem;">Confirm Delete</h3>
+                <p style="color: #666; margin-bottom: 25px; line-height: 1.5;">${message}</p>
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <button id="confirmCancel" style="
+                        padding: 12px 25px;
+                        border: 2px solid #6c757d;
+                        background: white;
+                        color: #6c757d;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: 600;
+                        transition: all 0.3s;
+                        flex: 1;
+                    ">Cancel</button>
+                    <button id="confirmDelete" style="
+                        padding: 12px 25px;
+                        border: none;
+                        background: #dc3545;
+                        color: white;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: 600;
+                        transition: all 0.3s;
+                        flex: 1;
+                    ">Delete</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // إضافة تأثير الظهور
+        setTimeout(() => {
+            modal.style.opacity = '1';
+            modal.querySelector('div').style.transform = 'scale(1)';
+        }, 10);
+        
+        // إضافة event listeners للأزرار
+        document.getElementById('confirmDelete').onclick = function() {
+            hideConfirmModal();
+            if (onConfirm) onConfirm();
+        };
+        
+        document.getElementById('confirmCancel').onclick = function() {
+            hideConfirmModal();
+            if (onCancel) onCancel();
+        };
+        
+        // إغلاق عند النقر خارج الـ modal
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                hideConfirmModal();
+                if (onCancel) onCancel();
+            }
+        };
+    }
+}
+
+// دالة لإخفاء نافذة التأكيد
+function hideConfirmModal() {
+    const modal = document.getElementById('confirmModal');
+    if (modal) {
+        modal.style.opacity = '0';
+        modal.querySelector('div').style.transform = 'scale(0.9)';
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    }
+}
+
 // دالة لجلب البيانات من API
 async function fetchData() {
     const tableBody = document.getElementById('tableBody');
@@ -109,11 +216,19 @@ function renderTable() {
             <div>${email}</div>
             <div>${phone}</div>
             <div>${college}</div>
-            <button class="action-btn download-btn" onclick="downloadCV('${app.cvFile || app.file}')" title="Download CV" ${!fileUrl ? 'disabled' : ''}>
-                    <i class="fas fa-download"></i>
-            </button>
+            <div>
+                ${fileUrl ? 
+                    `<button class="file-link-btn" onclick="openCV('${fileUrl}')" title="View CV">
+                        <i class="fas fa-file-pdf"></i> ${fileName}
+                    </button>` : 
+                    'No file'
+                }
+            </div>
             <div>${createdAt}</div>
             <div class="actions">
+                <button class="action-btn download-btn" onclick="downloadCV('${app.cvFile || app.file}')" title="Download CV" ${!fileUrl ? 'disabled' : ''}>
+                    <i class="fas fa-download"></i>
+                </button>
                 <button class="action-btn delete-btn" onclick="deleteApplication('${app.id}')" title="Delete">
                     <i class="fas fa-trash"></i>
                 </button>
@@ -190,38 +305,47 @@ function downloadCV(filePath) {
 
 // دالة لحذف الطلب من الـ API
 async function deleteApplication(id) {
-    if (!confirm('Are you sure you want to delete this application?')) {
-        return;
-    }
+    const app = applications.find(a => a.id === id);
+    const appName = app ? (app.fullName || app.name || 'this application') : 'this application';
+    
+    showConfirmModal(
+        `Are you sure you want to delete the application for <strong>${appName}</strong>? This action cannot be undone.`,
+        async function() {
+            // كود الحذف هنا
+            try {
+                const deleteBtn = event.target.closest('.delete-btn');
+                const originalHTML = deleteBtn.innerHTML;
+                deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                deleteBtn.disabled = true;
 
-    try {
-        const deleteBtn = event.target.closest('.delete-btn');
-        const originalHTML = deleteBtn.innerHTML;
-        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        deleteBtn.disabled = true;
+                const response = await fetch(`${API_BASE_URL}/api/applications/${id}`, {
+                    method: 'DELETE'
+                });
 
-        const response = await fetch(`${API_BASE_URL}/api/applications/${id}`, {
-            method: 'DELETE'
-        });
+                if (response.ok) {
+                    applications = applications.filter(app => app.id !== id);
+                    filteredData = filteredData.filter(app => app.id !== id);
+                    renderTable();
+                    showMessage('Application deleted successfully!', 'success');
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `Failed to delete application. Status: ${response.status}`);
+                }
 
-        if (response.ok) {
-            applications = applications.filter(app => app.id !== id);
-            filteredData = filteredData.filter(app => app.id !== id);
-            renderTable();
-            showMessage('Application deleted successfully!', 'success');
-        } else {
-            const errorData = await response.json();
-            throw new Error(errorData.error || `Failed to delete application. Status: ${response.status}`);
+            } catch (error) {
+                console.error('Error deleting application:', error);
+                showMessage(`Error deleting application: ${error.message}`, 'error');
+                
+                const deleteBtn = event.target.closest('.delete-btn');
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                deleteBtn.disabled = false;
+            }
+        },
+        function() {
+            // كود الإلغاء
+            console.log('Delete cancelled');
         }
-
-    } catch (error) {
-        console.error('Error deleting application:', error);
-        showMessage(`Error deleting application: ${error.message}`, 'error');
-
-        const deleteBtn = event.target.closest('.delete-btn');
-        deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-        deleteBtn.disabled = false;
-    }
+    );
 }
 
 // دالة لعرض الرسائل
@@ -309,6 +433,7 @@ function exportToCSV() {
 
             return [
                 index + 1,
+                app.id,
                 `"${name}"`,
                 `"${email}"`,
                 `"${phone}"`,
