@@ -221,7 +221,7 @@ function renderTable() {
                     <i class="fas fa-download"></i>
                 </button>
             <div class="actions">
-                <button class="action-btn delete-btn" onclick="deleteApplication('${app.id}', event)" title="Delete">
+                <button class="action-btn delete-btn" onclick="deleteApplication('${app.id}')" title="Delete">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -296,28 +296,37 @@ function downloadCV(filePath) {
 }
 
 // دالة لحذف الطلب من الـ API
+// دالة لحذف الطلب من الـ API
 async function deleteApplication(id) {
+    // الحصول على الزر من الـ event الحالي
+    const deleteBtn = event.target.closest('.delete-btn');
+    const originalHTML = deleteBtn.innerHTML;
+    
     const app = applications.find(a => a.id === id);
     const appName = app ? (app.fullName || app.name || 'this application') : 'this application';
     
     showConfirmModal(
         `Are you sure you want to delete the application for <strong>${appName}</strong>? This action cannot be undone.`,
         async function() {
-            // كود الحذف هنا
             try {
-                const deleteBtn = event.target.closest('.delete-btn');
-                const originalHTML = deleteBtn.innerHTML;
+                // تحديث حالة الزر
                 deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 deleteBtn.disabled = true;
 
+                // إرسال طلب الحذف
                 const response = await fetch(`${API_BASE_URL}/api/applications/${id}`, {
                     method: 'DELETE'
                 });
 
                 if (response.ok) {
+                    // تحديث البيانات المحلية
                     applications = applications.filter(app => app.id !== id);
                     filteredData = filteredData.filter(app => app.id !== id);
+                    
+                    // إعادة عرض الجدول
                     renderTable();
+                    
+                    // عرض رسالة النجاح
                     showMessage('Application deleted successfully!', 'success');
                 } else {
                     const errorData = await response.json();
@@ -328,13 +337,13 @@ async function deleteApplication(id) {
                 console.error('Error deleting application:', error);
                 showMessage(`Error deleting application: ${error.message}`, 'error');
                 
-                const deleteBtn = event.target.closest('.delete-btn');
-                deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                // إعادة تعيين الزر في حالة الخطأ
+                deleteBtn.innerHTML = originalHTML;
                 deleteBtn.disabled = false;
             }
         },
         function() {
-            // كود الإلغاء
+            // في حالة الإلغاء، لا تفعل شيئاً
             console.log('Delete cancelled');
         }
     );
