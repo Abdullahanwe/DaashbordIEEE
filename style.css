@@ -1,8 +1,12 @@
- :root {
+    :root {
             --ieee-blue: #00629B;
             --ieee-red: #ED1C24;
             --ieee-dark: #003B5C;
             --ieee-light: #E6F2F8;
+            --white: #ffffff;
+            --gray-light: #f8f9fa;
+            --gray-border: #dee2e6;
+            --text-dark: #333333;
         }
 
         * {
@@ -13,117 +17,142 @@
         }
 
         body {
-            background: linear-gradient(135deg, var(--ieee-light), #ffffff);
-            color: #333;
+            background: linear-gradient(135deg, var(--ieee-light), var(--white));
+            color: var(--text-dark);
             line-height: 1.6;
             min-height: 100vh;
-            padding: 20px;
+            padding: 15px;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            width: 100%;
         }
 
+        /* Header Styles */
         .header {
             text-align: center;
-            margin-bottom: 40px;
-            padding: 30px 0;
+            margin-bottom: 30px;
+            padding: 25px 15px;
             background: linear-gradient(135deg, var(--ieee-blue), var(--ieee-dark));
-            color: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            color: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             position: relative;
         }
 
         .header h1 {
-            font-size: 2.5rem;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
             margin-bottom: 10px;
+            font-weight: 700;
         }
 
         .header p {
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 2vw, 1.2rem);
             opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
         .ieee-logo {
-            height: 60px;
+            /* height: clamp(40px, 8vw, 60px); */
+            width: 15%;
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
         }
 
         .ieee-logo-left {
-            left: 30px;
+            left: 20px;
         }
 
         .ieee-logo-right {
-            right: 30px;
+            right: 20px;
         }
 
+        /* Controls Section */
         .controls {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
             gap: 15px;
-            align-items: center;
+            flex-wrap: wrap;
         }
 
         .search-box {
             flex: 1;
+            min-width: 250px;
             max-width: 400px;
         }
 
         .search-box input {
             width: 100%;
             padding: 12px 15px;
-            border: 2px solid #ddd;
+            border: 2px solid var(--gray-border);
             border-radius: 8px;
             font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--ieee-blue);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 98, 155, 0.1);
         }
 
         .action-buttons {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .btn {
-            padding: 10px 20px;
+            padding: 10px 18px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 0.95rem;
+            white-space: nowrap;
         }
 
         .btn-primary {
             background: var(--ieee-blue);
-            color: white;
+            color: var(--white);
         }
 
         .btn-secondary {
             background: var(--ieee-light);
             color: var(--ieee-dark);
+            border: 1px solid var(--ieee-blue);
         }
 
         .btn-danger {
             background: var(--ieee-red);
-            color: white;
+            color: var(--white);
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Loading State */
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 40px 20px;
             color: var(--ieee-blue);
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
 
         .loading i {
@@ -137,37 +166,41 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Table Styles */
         .data-table {
             width: 100%;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
             overflow: hidden;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .table-header {
             background: linear-gradient(135deg, var(--ieee-blue), var(--ieee-dark));
-            color: white;
-            padding: 20px;
+            color: var(--white);
+            padding: 18px 15px;
             display: grid;
-            grid-template-columns: 80px 1.5fr 1.5fr 1.2fr 1.5fr 1.2fr 1.2fr 150px;
-            gap: 15px;
+            grid-template-columns: 70px 1.5fr 1.5fr 1.2fr 1.5fr 1.2fr 1.2fr 140px;
+            gap: 12px;
             font-weight: 600;
+            font-size: 0.9rem;
         }
 
         .table-body {
-            max-height: 600px;
+            max-height: 500px;
             overflow-y: auto;
         }
 
         .table-row {
             display: grid;
-            grid-template-columns: 80px 1.5fr 1.5fr 1.2fr 1.5fr 1.2fr 1.2fr 150px;
-            gap: 15px;
-            padding: 15px 20px;
-            border-bottom: 1px solid #eee;
+            grid-template-columns: 70px 1.5fr 1.5fr 1.2fr 1.5fr 1.2fr 1.2fr 140px;
+            gap: 12px;
+            padding: 14px 15px;
+            border-bottom: 1px solid var(--gray-border);
             align-items: center;
+            transition: background-color 0.2s;
+            font-size: 0.9rem;
         }
 
         .table-row:hover {
@@ -180,20 +213,22 @@
 
         .actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .action-btn {
             background: none;
             border: none;
             cursor: pointer;
-            padding: 8px;
+            padding: 6px;
             border-radius: 4px;
             transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 0.9rem;
         }
 
         .view-btn {
@@ -209,7 +244,7 @@
         }
 
         .action-btn:hover {
-            background-color: rgba(0, 0, 0, 0.1);
+            background-color: rgba(0, 0, 0, 0.08);
             transform: scale(1.1);
         }
 
@@ -220,41 +255,52 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            font-size: 0.85rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .file-link:hover {
             text-decoration: underline;
         }
 
+        /* Pagination */
         .pagination {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
 
         .page-btn {
-            padding: 8px 15px;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 5px;
+            padding: 8px 14px;
+            border: 1px solid var(--gray-border);
+            background: var(--white);
+            border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s;
+            font-size: 0.9rem;
+            min-width: 40px;
+            text-align: center;
         }
 
         .page-btn.active {
             background: var(--ieee-blue);
-            color: white;
+            color: var(--white);
             border-color: var(--ieee-blue);
         }
 
         .page-btn:hover:not(.active) {
             background: var(--ieee-light);
+            border-color: var(--ieee-blue);
         }
 
+        /* Empty and Error States */
         .no-data {
             text-align: center;
-            padding: 40px;
+            padding: 40px 20px;
             color: #666;
             grid-column: 1 / -1;
         }
@@ -267,22 +313,34 @@
             text-align: center;
             margin-bottom: 20px;
             border: 1px solid var(--ieee-red);
+            font-size: 0.95rem;
         }
 
-        @media (max-width: 1200px) {
+        /* ========== RESPONSIVE DESIGN ========== */
+
+        /* Large Desktop (1200px and up) */
+        @media (min-width: 1200px) {
+            .container {
+                padding: 0 20px;
+            }
+        }
+
+        /* Medium Desktop (992px - 1199px) */
+        @media (max-width: 1199px) {
             .table-header, .table-row {
-                grid-template-columns: 80px 1.5fr 1.5fr 1.2fr 1.5fr 150px;
+                grid-template-columns: 60px 1.5fr 1.5fr 1.2fr 1.5fr 1.2fr 140px;
             }
             
-            .table-header div:nth-child(6), 
-            .table-row div:nth-child(6) {
+            .table-header div:nth-child(7), 
+            .table-row div:nth-child(7) {
                 display: none;
             }
         }
 
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
+        /* Small Desktop (768px - 991px) */
+        @media (max-width: 991px) {
+            .header {
+                padding: 20px 15px;
             }
             
             .ieee-logo {
@@ -291,23 +349,171 @@
                 margin: 10px 0;
             }
             
+            .table-header, .table-row {
+                grid-template-columns: 50px 1.5fr 1.5fr 1.2fr 1.5fr 140px;
+            }
+            
+            .table-header div:nth-child(6), 
+            .table-row div:nth-child(6) {
+                display: none;
+            }
+            
             .controls {
                 flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                max-width: 100%;
+            }
+            
+            .action-buttons {
+                justify-content: center;
+            }
+        }
+
+        /* Tablets (576px - 767px) */
+        @media (max-width: 767px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                margin-bottom: 20px;
+                padding: 20px 10px;
             }
             
             .table-header, .table-row {
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: 40px 1fr 1fr 120px;
                 gap: 10px;
+                padding: 12px 10px;
             }
             
-            .table-header div:nth-child(n+3), 
-            .table-row div:nth-child(n+3) {
+            .table-header div:nth-child(3), 
+            .table-header div:nth-child(4),
+            .table-header div:nth-child(5),
+            .table-row div:nth-child(3),
+            .table-row div:nth-child(4),
+            .table-row div:nth-child(5) {
+                display: none;
+            }
+            
+            .table-header {
+                font-size: 0.8rem;
+                padding: 15px 10px;
+            }
+            
+            .table-row {
+                font-size: 0.85rem;
+            }
+            
+            .btn {
+                padding: 8px 15px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Mobile Devices (575px and down) */
+        @media (max-width: 575px) {
+            .container {
+                padding: 0 5px;
+            }
+            
+            .header {
+                border-radius: 10px;
+                padding: 15px 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .data-table {
+                border-radius: 10px;
+            }
+            
+            .table-header, .table-row {
+                grid-template-columns: 35px 1fr 90px;
+                gap: 8px;
+                padding: 10px 8px;
+            }
+            
+            .table-header div:nth-child(n+3):not(:last-child),
+            .table-row div:nth-child(n+3):not(:last-child) {
                 display: none;
             }
             
             .actions {
-                grid-column: 1 / -1;
+                gap: 4px;
+            }
+            
+            .action-btn {
+                padding: 4px;
+                font-size: 0.8rem;
+            }
+            
+            .file-link {
+                font-size: 0.8rem;
+            }
+            
+            .search-box input {
+                padding: 10px 12px;
+            }
+            
+            .btn {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+            
+            .page-btn {
+                padding: 6px 10px;
+                font-size: 0.85rem;
+                min-width: 35px;
+            }
+        }
+
+        /* Extra Small Mobile (375px and down) */
+        @media (max-width: 375px) {
+            .table-header, .table-row {
+                grid-template-columns: 30px 1fr 80px;
+                font-size: 0.8rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .btn {
+                width: 100%;
                 justify-content: center;
-                margin-top: 10px;
+            }
+            
+            .pagination {
+                gap: 5px;
+            }
+            
+            .page-btn {
+                padding: 5px 8px;
+                min-width: 30px;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .header, .controls, .actions {
+                display: none;
+            }
+            
+            .data-table {
+                box-shadow: none;
+                border: 1px solid #000;
+            }
+            
+            .table-header {
+                background: #000 !important;
+                color: #fff !important;
+                -webkit-print-color-adjust: exact;
             }
         }
